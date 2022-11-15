@@ -41,7 +41,7 @@ class _MyHomePageState extends State<MyHomePage> {
             return Center(child: Text(snapshot.error!.toString()));
           } else if (snapshot.hasData) {
             final List todos = snapshot.data!.docs
-                .map((e) => Todo.fromJson(e.data() as Map<String, dynamic>))
+                .map((e) => Todo.fromMap(e.data() as Map<String, dynamic>))
                 .toList();
             return ListView.builder(
               itemCount: todos.length,

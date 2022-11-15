@@ -25,7 +25,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
       isCompleted: _isCompleted,
       author: _author.text,
     );
-    await db.collection('todos').add(todo.toJson());
+    await db.collection('todos').add(todo.toMap());
   }
 
   @override

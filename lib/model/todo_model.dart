@@ -13,7 +13,7 @@ class Todo {
   final bool isCompleted;
   final String author;
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'title': title,
       'description': description,
@@ -22,13 +22,17 @@ class Todo {
     };
   }
 
-  factory Todo.fromJson(Map<String, dynamic> map) {
+  factory Todo.fromMap(Map<String, dynamic> map) {
     return Todo(
       title: map['title'] as String,
-      description:
-          map['description'] != null ? map['description'] as String : null,
+      description: map['description'] as String?,
       isCompleted: map['isCompleted'] as bool,
       author: map['author'] as String,
     );
   }
+
+  String toJson() => json.encode(toMap());
+
+  factory Todo.fromJson(String source) =>
+      Todo.fromMap(json.decode(source) as Map<String, dynamic>);
 }
