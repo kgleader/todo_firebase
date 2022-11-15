@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:todo_app/home/add_todo_page.dart';
+import 'package:todo_app/model/todo_model.dart';
+
+import 'add_todo_page.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -12,27 +15,15 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // int _counter = 0;
-
-  // void _incrementCounter() {
-  //   setState(() {
-  //     _counter++;
-  //   });
-  // }
-
   @override
   void initState() {
     super.initState();
     readTodos();
   }
 
-  Future<void> readTodos() async {
+  Stream<QuerySnapshot> readTodos() {
     final db = FirebaseFirestore.instance;
-    await db.collection("users").get().then((event) {
-      for (var doc in event.docs) {
-        print("${doc.id} => ${doc.data()}");
-      }
-    });
+    return db.collection('todos').snapshots();
   }
 
   @override
@@ -41,19 +32,43 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '0',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
-        ),
+      body: StreamBuilder(
+        stream: readTodos(),
+        builder: ((context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CupertinoActivityIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text(snapshot.error!.toString()));
+          } else if (snapshot.hasData) {
+            final List todos = snapshot.data!.docs
+                .map((e) => Todo.fromJson(e.data() as Map<String, dynamic>))
+                .toList();
+            return ListView.builder(
+              itemCount: todos.length,
+              itemBuilder: (BuildContext context, int index) {
+                final todo = todos[index];
+                return Card(
+                  child: ListTile(
+                    title: Text(todo.title),
+                    trailing: Checkbox(
+                      value: todo.isCompleted,
+                      onChanged: (v) {},
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(todo.description ?? ''),
+                        Text(todo.author),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          } else {
+            return const Center(child: Text('Some Error'));
+          }
+        }),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
